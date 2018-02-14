@@ -1,72 +1,64 @@
-<svg>
-  <defs>
-    <symbol id="backgroundRect">
-      <gradientRect id="backgroundRect" class="draggable"
-                    x="0" y="0"
-                    width="348" height="250"
-                    gradient-type="linear"
-                    gradient-x1="0" gradient-y1="0"
-                    gradient-x2="0" gradient-y2="125"
-                    gradient-color1="tomato" gradient-color2="red"
-                    opacity="1"
-                    pointer-events="none">
-        <animate attributeName="width" begin="enable" from="0" to="348" dur="1500" final="keep"/>
-        <animate attributeName="width" begin="disable" from="348" to="-30" dur="0.3" final="keep"/>
-      </gradientRect>
-    </symbol>
-
-    <symbol id="backgroundRectResting">
-      <gradientRect id="backgroundRectResting"
-                    x="0" y="0"
-                    width="0" height="250"
-                    gradient-type="linear"
-                    gradient-x1="0" gradient-y1="0"
-                    gradient-x2="0" gradient-y2="125"
-                    gradient-color1="mediumseagreen" gradient-color2="seagreen"
-                    opacity="1"
-                    pointer-events="none"> 
-        <animate attributeName="width" begin="enable" from="0" to="348" dur="300" final="keep"/>
-        <animate attributeName="width" begin="disable" from="348" to="-30" dur="0.3" final="keep"/>
-      </gradientRect>
-    </symbol>
-    
-    <symbol id="backgroundRectLongResting">
-      <gradientRect id="backgroundRectLongResting"
-                    x="0" y="0"
-                    width="0" height="250"
-                    gradient-type="linear"
-                    gradient-x1="0" gradient-y1="0"
-                    gradient-x2="0" gradient-y2="125"
-                    gradient-color1="royalblue" gradient-color2="steelblue"
-                    opacity="1"
-                    pointer-events="none"> 
-        <animate attributeName="width" begin="enable" from="0" to="348" dur="900" final="keep"/>
-        <animate attributeName="width" begin="disable" from="348" to="-30" dur="0.3" final="keep"/>
-      </gradientRect>
-    </symbol>
-  </defs>
+<svg>  
+  <gradientRect id="backgroundRect" class="draggable"
+                x="0" y="0"
+                gradient-type="linear"
+                gradient-x1="0" gradient-y1="0"
+                gradient-x2="0" gradient-y2="50%"
+                gradient-color1="tomato" gradient-color2="red"
+                opacity="1"
+                pointer-events="none">
+  </gradientRect>
   
-  <svg width="100%" height="100%">
-    <use id="backgroundRect" href="#backgroundRect" width="100%" height="100%" />
-  </svg>
+  <gradientRect id="backgroundRectShortResting"
+                x="0" y="0"
+                width="0" height="100%"
+                gradient-type="linear"
+                gradient-x1="0" gradient-y1="0"
+                gradient-x2="0" gradient-y2="50%"
+                gradient-color1="mediumseagreen" gradient-color2="seagreen"
+                opacity="1"
+                pointer-events="none"> 
+  </gradientRect>
   
-  <svg width="100%" height="100%">
-    <use id="backgroundRectResting" href="#backgroundRectResting" width="100%" height="100%"/>
-  </svg>
+  <gradientRect id="backgroundRectLongResting"
+                x="0" y="0"
+                width="0" height="100%"
+                gradient-type="linear"
+                gradient-x1="0" gradient-y1="0"
+                gradient-x2="0" gradient-y2="50%"
+                gradient-color1="royalblue" gradient-color2="steelblue"
+                opacity="1"
+                pointer-events="none"> 
+  </gradientRect>
   
-  <svg width="100%" height="100%">
-    <use id="backgroundRectLongResting" href="#backgroundRectLongResting" width="100%" height="100%"/>
-  </svg>
-  
-  <text id="stateText" class="stateText" x="6" y="100" pointer-events="none">Start a Pomodoro</text>
-  <text id="minuteText" class="minutesBigText draggable" x="6" y="230" width="100%" pointer-events="none">25    </text>
-  <text id="unitText" class="unitText" x="120" y="230" pointer-events="none">min</text>
+  <text id="pomodoroText" x="2%" y="24%" text-length="14" pointer-events="none">Pomodoro #1</text>
+  <text id="stateText" x="2%" y="42%" text-length="16" pointer-events="none">Start a Pomodoro</text>
+  <text id="minuteText" x="2%" y="92%" width="100%" text-length="7" pointer-events="none">25</text>
+  <text id="unitText" x="35%" y="92%" pointer-events="none">min</text>
 
   <line x1="0" y1="50%" x2="100%" y2="50%" fill="white" stroke-width="2" />
     
-  <use id="btn-br" href="#combo-button-lower-right" fill="white">
+  <use id="btn-tr-reset" href="#combo-button-upper-right" fill="white">
+    <set href="combo-button-icon" attributeName="href" to="reset.png"/>
+    <set href="combo-button-icon-press" attributeName="href" to="reset.png"/>
+    <set href="combo-button-stroke" attributeName="display" to="none"/>
+  </use>
+  
+  <use id="btn-tr-forward" href="#combo-button-upper-right" fill="white">
+    <set href="combo-button-icon" attributeName="href" to="forward.png"/>
+    <set href="combo-button-icon-press" attributeName="href" to="forward_press.png"/>
+    <set href="combo-button-stroke" attributeName="display" to="none"/>
+  </use>
+  
+  <use id="btn-br-play" href="#combo-button-lower-right" fill="white">
     <set href="combo-button-icon" attributeName="href" to="play.png"/>
     <set href="combo-button-icon-press" attributeName="href" to="play_press.png"/>
+    <set href="combo-button-stroke" attributeName="display" to="inline"/>
+  </use>
+  
+  <use id="btn-br-pause" href="#combo-button-lower-right" fill="white">
+    <set href="combo-button-icon" attributeName="href" to="pause.png"/>
+    <set href="combo-button-icon-press" attributeName="href" to="pause_press.png"/>
     <set href="combo-button-stroke" attributeName="display" to="inline"/>
   </use>
 </svg>
