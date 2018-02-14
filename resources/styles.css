@@ -1,0 +1,27 @@
+#backgroundRectResting {
+  display: inline;
+}
+
+#backgroundRect {
+  display: inline;
+}
+
+.minutesBigText {
+  fill: #FFFFFF;
+  font-family: Seville-Book;
+  font-size: 105;
+}
+
+.stateText {
+  display: inline;
+  fill: #D3D3D3;
+  font-family: Seville-Book;
+  font-size: 35;
+}
+
+.unitText {
+  display: inline;
+  fill: #C0C0C0;
+  font-family: Seville-Book;
+  font-size: 40;
+}

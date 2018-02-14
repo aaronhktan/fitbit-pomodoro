@@ -1,0 +1,33 @@
+{
+  "fitbit": {
+    "appUUID": "55d5be9a-1571-4987-b5e7-cda00dc7d56b",
+    "appType": "app",
+    "appDisplayName": "Tomatina",
+    "iconFile": "resources/icon.png",
+    "wipeColor": "#f44336",
+    "requestedPermissions": [],
+    "i18n": {
+      "en": {
+        "name": "Tomatina"
+      },
+      "zh-cn": {
+        "name": "番茄工作计时器"
+      },
+      "zh-tw": {
+        "name": "番茄工作計時器"
+      },
+      "fr": {
+        "name": "Tomatina"
+      },
+      "es": {
+        "name": "Tomatina"
+      },
+      "ja": {
+        "name": "トマティーナ"
+      },
+      "ko": {
+        "name": "토마티나"
+      }
+    }
+  }
+}
