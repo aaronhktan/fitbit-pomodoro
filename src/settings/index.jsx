@@ -44,6 +44,7 @@ function mySettings(props) {
           settingsKey="long-rest-duration"
           options={[
             // {name:"15 seconds", value:.25},
+            {name:"10 minutes", value:10},
             {name:"15 minutes", value:15},
             {name:"20 minutes", value:20},
             {name:"25 minutes", value:25},

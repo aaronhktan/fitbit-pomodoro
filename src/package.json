@@ -8,6 +8,10 @@
     "requestedPermissions": [
       "run_background"
     ],
+    "buildTargets": [
+      "higgs",
+      "meson"
+    ],
     "i18n": {
       "en": {
         "name": "Tomatina"

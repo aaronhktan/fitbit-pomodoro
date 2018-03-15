@@ -31,7 +31,7 @@
                 pointer-events="none"> 
   </gradientRect>
   
-  <text id="pomodoroText" x="2%" y="24%" text-length="14" pointer-events="none">Pomodoro #1</text>
+  <text id="pomodoroText" x="2%" y="28%" text-length="14" pointer-events="none">Pomodoro #1</text>
   <text id="stateText" x="2%" y="42%" text-length="16" pointer-events="none">Start a Pomodoro</text>
   <text id="minuteText" x="2%" y="92%" width="100%" text-length="7" pointer-events="none">25</text>
   <text id="unitText" x="35%" y="92%" pointer-events="none">min</text>

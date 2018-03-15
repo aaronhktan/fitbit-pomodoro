@@ -1,9 +1,9 @@
+import { me } from "appbit";
 import clock from "clock";
 import document from "document";
 import * as fs from "fs";
 import * as haptics from "haptics";
 import * as messaging from "messaging";
-import { me } from "appbit";
 import { sendVal, stripQuotes } from "../common/utils.js";
 
 var backgroundRect = document.getElementById("backgroundRect");

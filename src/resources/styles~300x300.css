@@ -1,0 +1,48 @@
+#backgroundRectResting {
+  display: inline;
+}
+
+#backgroundRect {
+  display: inline;
+  width: 300;
+  height: 300;
+}
+
+#btn-tr-reset {
+  display: none;
+}
+
+#btn-tr-forward {
+  display: none;
+}
+
+#btn-br-pause {
+  display: none;
+}
+
+#pomodoroText {
+  display: none;
+  fill: #D3D3D3;
+  font-family: Seville-Book;
+  font-size: 24;
+}
+
+#stateText {
+  display: inline;
+  fill: #FFFFFF;
+  font-family: Seville-Book;
+  font-size: 35;
+}
+
+#minuteText {
+  fill: #FFFFFF;
+  font-family: Seville-Book;
+  font-size: 90;
+}
+
+#unitText {
+  display: inline;
+  fill: #C0C0C0;
+  font-family: Seville-Book;
+  font-size: 40;
+}
