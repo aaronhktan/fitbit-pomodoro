@@ -9,7 +9,7 @@ function mySettings(props) {
           label="Pomodoro duration"
           settingsKey="pomodoro-duration"
           options={[
-            // {name:"15 seconds", value:.25},
+            // {name:"15 seconds", value:0.1},
             {name:"10 minutes", value:10},
             {name:"15 minutes", value:15},
             {name:"20 minutes", value:20},
@@ -25,7 +25,7 @@ function mySettings(props) {
           label="Short break duration"
           settingsKey="short-rest-duration"
           options={[
-            // {name:"15 seconds",  value:.25},
+            // {name:"15 seconds",  value:0.1},
             {name:"1 minute",   value:1},
             {name:"2 minutes",  value:2},
             {name:"3 minutes",  value:3},
@@ -43,13 +43,17 @@ function mySettings(props) {
           label="Long break duration"
           settingsKey="long-rest-duration"
           options={[
-            // {name:"15 seconds", value:.25},
+            // {name:"15 seconds", value:0.2},
             {name:"10 minutes", value:10},
             {name:"15 minutes", value:15},
             {name:"20 minutes", value:20},
             {name:"25 minutes", value:25},
             {name:"30 minutes", value:30}
           ]}
+        />
+        <Toggle
+          label="Continue on resume?"
+          settingsKey="continue-on-resume"
         />
       </Section>
     </Page>

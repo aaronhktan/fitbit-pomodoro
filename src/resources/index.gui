@@ -9,28 +9,6 @@
                 pointer-events="none">
   </gradientRect>
   
-  <gradientRect id="backgroundRectShortResting"
-                x="0" y="0"
-                width="0" height="100%"
-                gradient-type="linear"
-                gradient-x1="0" gradient-y1="0"
-                gradient-x2="0" gradient-y2="50%"
-                gradient-color1="mediumseagreen" gradient-color2="seagreen"
-                opacity="1"
-                pointer-events="none"> 
-  </gradientRect>
-  
-  <gradientRect id="backgroundRectLongResting"
-                x="0" y="0"
-                width="0" height="100%"
-                gradient-type="linear"
-                gradient-x1="0" gradient-y1="0"
-                gradient-x2="0" gradient-y2="50%"
-                gradient-color1="royalblue" gradient-color2="steelblue"
-                opacity="1"
-                pointer-events="none"> 
-  </gradientRect>
-  
   <text id="pomodoroText" x="2%" y="28%" text-length="14" pointer-events="none">Pomodoro #1</text>
   <text id="stateText" x="2%" y="42%" text-length="16" pointer-events="none">Start a Pomodoro</text>
   <text id="minuteText" x="2%" y="92%" width="100%" text-length="7" pointer-events="none">25</text>
@@ -38,25 +16,25 @@
 
   <line x1="0" y1="50%" x2="100%" y2="50%" fill="white" stroke-width="2" />
     
-  <use id="btn-tr-reset" href="#combo-button-upper-right" fill="white">
+  <use id="btnTRReset" href="#combo-button-upper-right" fill="white">
     <set href="combo-button-icon" attributeName="href" to="reset.png"/>
     <set href="combo-button-icon-press" attributeName="href" to="reset.png"/>
     <set href="combo-button-stroke" attributeName="display" to="none"/>
   </use>
   
-  <use id="btn-tr-forward" href="#combo-button-upper-right" fill="white">
+  <use id="btnTRForward" href="#combo-button-upper-right" fill="white">
     <set href="combo-button-icon" attributeName="href" to="forward.png"/>
     <set href="combo-button-icon-press" attributeName="href" to="forward_press.png"/>
     <set href="combo-button-stroke" attributeName="display" to="none"/>
   </use>
   
-  <use id="btn-br-play" href="#combo-button-lower-right" fill="white">
+  <use id="btnBRPlay" href="#combo-button-lower-right" fill="white">
     <set href="combo-button-icon" attributeName="href" to="play.png"/>
     <set href="combo-button-icon-press" attributeName="href" to="play_press.png"/>
     <set href="combo-button-stroke" attributeName="display" to="inline"/>
   </use>
   
-  <use id="btn-br-pause" href="#combo-button-lower-right" fill="white">
+  <use id="btnBRPause" href="#combo-button-lower-right" fill="white">
     <set href="combo-button-icon" attributeName="href" to="pause.png"/>
     <set href="combo-button-icon-press" attributeName="href" to="pause_press.png"/>
     <set href="combo-button-stroke" attributeName="display" to="inline"/>

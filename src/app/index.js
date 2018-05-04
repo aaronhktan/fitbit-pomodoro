@@ -1,417 +1,387 @@
-import { me } from "appbit";
-import clock from "clock";
-import document from "document";
-import * as fs from "fs";
-import * as haptics from "haptics";
-import * as messaging from "messaging";
-import { sendVal, stripQuotes } from "../common/utils.js";
+import { me } from 'appbit';
+import clock from 'clock';
+import { me as device } from 'device';
+import document from 'document';
+import * as fs from 'fs';
+import * as haptics from 'haptics';
+import * as messaging from 'messaging';
+import { sendVal, stripQuotes } from '../common/utils.js';
 
-var backgroundRect = document.getElementById("backgroundRect");
-var backgroundRectShortResting = document.getElementById("backgroundRectShortResting");
-var backgroundRectLongResting = document.getElementById("backgroundRectLongResting");
+import Globals from './globals';
+import Settings from './settings';
+import UI from './ui';
 
-var btnTRReset = document.getElementById("btn-tr-reset");
-var btnTRForward = document.getElementById("btn-tr-forward");
-var btnBRPlay = document.getElementById("btn-br-play");
-var btnBRPause = document.getElementById("btn-br-pause");
-var pomodoroText = document.getElementById("pomodoroText");
-var stateText = document.getElementById("stateText");
-var minuteText = document.getElementById("minuteText");
-var unitText = document.getElementById("unitText");
+if (!device.screen) device.screen = { width: 348, height: 250 };
 
-var pomodoroNumber = 0;
-var secondsToEnd = 15 * 60;
-var timer, timerSet = false;
-var state = "initialize"; // Possible states are initialize, working, shortResting, longResting, working-paused, shortResting-paused, and longResting-paused
-var pomodoroDuration = 25, shortRestDuration = 5, longRestDuration = 15;
+// Create globals, UI, and settings objects
+var globals = new Globals();
+var settings = new Settings();
+var ui = new UI();
 
-me.addEventListener("unload", function() {
-  let json_data = {
-    "state": state,
-    "secondsToEnd": secondsToEnd,
-    "pomodoroNumber": pomodoroNumber
-  }
-  fs.writeFileSync("lastState.txt", json_data, "cbor");
+me.addEventListener('unload', () => {
+  globals.save();
+  settings.save();
 });
 
-messaging.peerSocket.onmessage = function(evt) {
-  if (evt.data.hasOwnProperty("key")) {
-    if (evt.data.key == "pomodoro-duration") {
+// Receive and parse new settings
+messaging.peerSocket.onmessage = evt => {
+  if (evt.data.hasOwnProperty('key')) {
+    if (evt.data.key == 'pomodoro-duration') {
       if (evt.data.newValue.hasOwnProperty("values")) {
-        pomodoroDuration = JSON.stringify(evt.data.newValue["values"][0]["value"]);
+        settings.pomodoroDuration = JSON.stringify(evt.data.newValue["values"][0]["value"]);
       } else {
-        var res = JSON.parse(evt.data.newValue);
-        pomodoroDuration = JSON.stringify(res["values"][0]["value"]);
+        let res = JSON.parse(evt.data.newValue);
+        settings.pomodoroDuration = JSON.stringify(res["values"][0]["value"]);
       }
-      if (state == "initialize") {
-        minuteText.text = pomodoroDuration;
+      if (globals.state == 'initialize') {
+        ui.minuteLabel.text = settings.pomodoroDuration;
       }
-    } else if (evt.data.key == "short-rest-duration") {
+    } else if (evt.data.key == 'short-rest-duration') {
       if (evt.data.newValue.hasOwnProperty("values")) {
-        shortRestDuration = JSON.stringify(evt.data.newValue["values"][0]["value"]);
+        settings.shortRestDuration = JSON.stringify(evt.data.newValue["values"][0]["value"]);
       } else {
-        var res = JSON.parse(evt.data.newValue);
-        shortRestDuration = JSON.stringify(res["values"][0]["value"]);
+        let res = JSON.parse(evt.data.newValue);
+        settings.shortRestDuration = JSON.stringify(res["values"][0]["value"]);
       }
-    } else if (evt.data.key == "long-rest-duration") {
+    } else if (evt.data.key == 'long-rest-duration') {
       if (evt.data.newValue.hasOwnProperty("values")) {
-        longRestDuration = JSON.stringify(evt.data.newValue["values"][0]["value"]);
+        settings.longRestDuration = JSON.stringify(evt.data.newValue["values"][0]["value"]);
       } else {
-        var res = JSON.parse(evt.data.newValue);
-        longRestDuration = JSON.stringify(res["values"][0]["value"]);
+        let res = JSON.parse(evt.data.newValue);
+        settings.longRestDuration = JSON.stringify(res["values"][0]["value"]);
       }
-    }
-
-    let json_data = {
-      "pomodoroDuration": pomodoroDuration,
-      "shortRestDuration": shortRestDuration,
-      "longRestDuration": longRestDuration
-    }
-    fs.writeFileSync("settings.txt", json_data, "cbor");
-  }
-}
-
-btnTRReset.onactivate = function(evt) {
-  haptics.vibration.start("confirmation");
-  
-  if (state == "working-paused") {
-    clearInterval(timer);
-  } else if (state == "shortResting-paused") {
-    endShortRestTimer(false);
-  } else if (state == "longResting-paused") {
-    endLongRestTimer(false);
-  }
-  
-  var enable = setInterval(function() {
-    if (backgroundRect.width <= 348) {
-      backgroundRect.width += 25;
-    } else {
-      clearInterval(enable);
-    }
-  }, 1);
-  
-  state = "initialize";
-  pomodoroNumber = 0;
-  pomodoroText.text = "Pomodoro #1";
-  stateText.text = "Start a Pomodoro";
-  minuteText.text = pomodoroDuration;
-  secondsToEnd = Math.floor(pomodoroDuration * 60);
-  
-  btnTRReset.style.display = "none";
-  btnTRForward.style.display = "none";
-  btnBRPlay.style.display = "inline";
-  btnBRPause.style.display = "none";
-  pomodoroText.style.display = "none";
-  minuteText.style.display = "inline";
-  unitText.style.display = "inline";
-}
-
-btnTRForward.onactivate = function(evt) {
-  haptics.vibration.start("confirmation");
-  
-  if (state == "working") {
-    endWorkTimer(true);
-  } else if (state == "shortResting") {
-    endShortRestTimer(true);
-  } else if (state == "longResting") {
-    endLongRestTimer(true);
-  }
-}
-
-btnBRPlay.onactivate = function (evt) {
-  haptics.vibration.start("confirmation");
-  
-  if (state == "initialize") {
-    btnTRReset.style.display = "none";
-    btnTRForward.style.display = "inline";
-    btnBRPlay.style.display = "none";
-    btnBRPause.style.display = "inline";
-    pomodoroText.style.display = "inline";
-    unitText.style.display = "none";
-    
-    var disable = setInterval(function() {
-      if (backgroundRect.width > 0) {
-        backgroundRect.width -= 25;
-      } else {
-        clearInterval(disable);
-      }
-    }, 1);
-    
-    stateText.text = "Get to work!";
-    secondsToEnd = pomodoroDuration * 60;
-    minuteText.text = pomodoroDuration + ":00";
-    
-    setTimeout(function() {
-      state = "working";
-      startWorkTimer(false);
-    }, 300);
-  } else if (state == "working-paused" || state == "shortResting-paused" || state == "longResting-paused") {
-    if (timerSet) {
-      clearInterval(timer);
-      timerSet = false;
-    }
-    
-    btnTRReset.style.display = "none";
-    btnTRForward.style.display = "inline";
-    btnBRPlay.style.display = "none";
-    btnBRPause.style.display = "inline";
-    minuteText.style.display = "inline";
-    
-    if (state == "working-paused") {
-      stateText.text = "Get to work!";
-      startWorkTimer(true);
-    } else if (state == "shortResting-paused") {
-      stateText.text = "Take a short break";
-      startShortRestTimer();
-    } else if (state == "longResting-paused") {
-      stateText.text = "Take a long break";
-      startLongRestTimer();
+    } else if (evt.data.key == 'continue-on-resume') {
+      settings.continueOnResume = JSON.parse(evt.data.newValue);    
     }
   }
-};
 
-btnBRPause.onactivate = function (evt) {
-  haptics.vibration.start("confirmation");
-  
-  if (state == "working" || state == "shortResting" || state == "longResting") {
-    if (state == "working") {
-      state = "working-paused";      
-    } else if (state == "shortResting") {
-      state = "shortResting-paused";
-    } else if (state == "longResting") {
-      state = "longResting-paused";
-    }
-    
-    if (timerSet) {
-      clearInterval(timer);
-      timerSet = false;
-    }
-    
-    var textIsVisible = true;
-    timer = setInterval(function() {
-      if (textIsVisible) {
-        minuteText.style.display = "none";
-        textIsVisible = false;
-      } else {
-        minuteText.style.display = "inline";
-        textIsVisible = true;
-      }
-    }, 1000);
-    timerSet = true;
-    
-    btnTRReset.style.display = "inline";
-    btnTRForward.style.display = "none";
-    btnBRPlay.style.display = "inline";
-    btnBRPause.style.display = "none";
-    
-    stateText.text = "Paused...";
-  }
+  settings.save();
 }
 
-function startWorkTimer(is_resume) {
-  state = "working";
-  if (!is_resume) {
-    pomodoroNumber++;
-    pomodoroText.text = `Pomodoro #${pomodoroNumber}`;
-  }
-  timer = setInterval(function () {
-    secondsToEnd--;
-    let minutes = Math.floor(secondsToEnd / 60);
-    let seconds = secondsToEnd % 60;
-    minutes = (minutes < 10) ? ("0" + minutes) : minutes;
-    seconds = (seconds < 10) ? ("0" + seconds) : seconds;
-    minuteText.text = minutes + ":" + seconds;
-    backgroundRect.width = 348 - Math.floor(348 * secondsToEnd / Math.floor(pomodoroDuration * 60));
-    if (secondsToEnd < 0) {
-      endWorkTimer(true);
-    }
-  }, 1000);
-  timerSet = true;
-};
+ui.resetButton.onactivate = evt => {
+  if (!globals.isAnimating) {
+    haptics.vibration.start('confirmation');
 
-function endWorkTimer(start_next) {
-  clearInterval(timer);
-  haptics.vibration.start("ping");
+    endStateTimer(false);
+    globals.isAnimating = true;
 
-  var disable = setInterval(function() {
-    if (backgroundRect.width > 0) {
-      backgroundRect.width -= 25;
-    } else {
-      clearInterval(disable);
-    }
-  }, 1);
-
-  if (start_next) {
-    if (pomodoroNumber % 4 != 0) {
-      stateText.text = "Take a short break";
-      secondsToEnd = Math.floor(shortRestDuration * 60);
-      minuteText.text = (shortRestDuration) < 10 ? (`0${shortRestDuration}:00`) : (shortRestDuration + ":00");
-      startShortRestTimer();
-    } else {
-      stateText.text = "Take a long break";
-      secondsToEnd = Math.floor(longRestDuration * 60);
-      minuteText.text = (longRestDuration) < 10 ? (`0${longRestDuration}:00`) : (longRestDuration + ":00");
-      startLongRestTimer();
-    }
-  }
-}
-
-function startShortRestTimer() {
-  state = "shortResting";
-  timer = setInterval(function () {
-    secondsToEnd--;
-    let minutes = Math.floor(secondsToEnd / 60);
-    let seconds = secondsToEnd % 60;
-    minutes = (minutes < 10) ? ("0" + minutes) : minutes;
-    seconds = (seconds < 10) ? ("0" + seconds) : seconds;
-    minuteText.text = minutes + ":" + seconds;
-    backgroundRectShortResting.width = 348 - Math.floor(348 * secondsToEnd / (shortRestDuration * 60));
-    if (secondsToEnd < 0) {
-      endShortRestTimer(true);
-    }
-  }, 1000);
-  timerSet = true;
-}
-
-function endShortRestTimer(start_next) {
-  clearInterval(timer);
-  haptics.vibration.start("ping");
-
-  var disable = setInterval(function() {
-    if (backgroundRectShortResting.width > 0) {
-      backgroundRectShortResting.width -= 25;
-    } else {
-      clearInterval(disable);
-    }
-  }, 1);
-
-  if (start_next) {
-    stateText.text = "Get to work!";
-    secondsToEnd = Math.floor(pomodoroDuration * 60);
-    minuteText.text = (pomodoroDuration) < 10 ? (`0${pomodoroDuration}:00`) : (pomodoroDuration + ":00");
-    startWorkTimer(false);
-  }
-}
-
-function startLongRestTimer() {
-  state = "longResting";
-  timer = setInterval(function () {
-    secondsToEnd--;
-    let minutes = Math.floor(secondsToEnd / 60);
-    let seconds = secondsToEnd % 60;
-    minutes = (minutes < 10) ? ("0" + minutes) : minutes;
-    seconds = (seconds < 10) ? ("0" + seconds) : seconds;
-    minuteText.text = minutes + ":" + seconds;
-    backgroundRectLongResting.width = 348 - Math.floor(348 * secondsToEnd / (longRestDuration * 60));
-    if (secondsToEnd < 0) {
-      endLongRestTimer(true);
-    }
-  }, 1000);
-  timerSet = true;
-}
-
-function endLongRestTimer(start_next) {
-  clearInterval(timer);
-  haptics.vibration.start("ping");
-
-  var disable = setInterval(function() {
-    if (backgroundRectLongResting.width > 0) {
-      backgroundRectLongResting.width -= 25;
-    } else {
-      clearInterval(disable);
-    }
-  }, 1);
-
-  if (start_next) {
-    stateText.text = "Get to work!";
-    secondsToEnd = Math.floor(pomodoroDuration * 60);
-    minuteText.text = (pomodoroDuration - 1) < 10 ? (`0${pomodoroDuration - 1}:59`) : (pomodoroDuration - 1 + ":59");
-    startWorkTimer(false);
-  }
-}
-
-try {
-  var settings = fs.readFileSync("settings.txt", "cbor");
-  if (settings) {
-    if (settings.pomodoroDuration !== undefined) {
-      pomodoroDuration = settings.pomodoroDuration;
-      minuteText.text = pomodoroDuration;
-      secondsToEnd = Math.floor(pomodoroDuration * 60);
-    }
-    if (settings.shortRestDuration !== undefined) {
-      shortRestDuration = settings.shortRestDuration;
-    }
-    if (settings.longRestDuration !== undefined) {
-      longRestDuration = settings.longRestDuration;
-    }
-  }
-} catch (e) {
-  console.log("Settings not found; defaulting to presets.");
-}
-
-try {
-  var lastState = fs.readFileSync("lastState.txt", "cbor");
-  if (lastState) {
-    if (lastState.state !== undefined) {
-      state = lastState.state;
-    }
-    if (lastState.secondsToEnd !== undefined) {
-      secondsToEnd = Math.floor(lastState.secondsToEnd);
-    }
-    if (lastState.pomodoroNumber !== undefined) {
-      pomodoroNumber = lastState.pomodoroNumber;
-    }
-    
-    if (state == "working" || state == "working-paused" || 
-        state == "shortResting" || state == "shortResting-paused" || 
-        state == "longResting" || state == "longResting-paused") {
-      if (state == "working" || state == "working-paused") {
-        state = "working-paused";
-        backgroundRect.width = 348 - Math.floor(348 * secondsToEnd / Math.floor(pomodoroDuration * 60));
-      } else if (state == "shortResting" || state == "shortResting-paused") {
-        state = "shortResting-paused";
-        backgroundRect.width = 0;
-        backgroundRectShortResting.width = 348 - Math.floor(348 * secondsToEnd / (shortRestDuration * 60));
-      } else if (state == "longResting" || state == "longResting-paused") {
-        state = "longResting-paused";
-        backgroundRect.width = 0;
-        backgroundRectLongResting.width = 348 - Math.floor(348 * secondsToEnd / (longRestDuration * 60));
-      }
-
-      if (timerSet) {
-        clearInterval(timer);
-        timerSet = false;
-      }
-
-      var textIsVisible = true;
-      timer = setInterval(function() {
-        if (textIsVisible) {
-          minuteText.style.display = "none";
-          textIsVisible = false;
+    setTimeout(() => {
+      ui.setPomodoroRectColours(globals.state);
+      let enable = setInterval(() => {
+        if (ui.pomodoroRect.width <= device.screen.width) {
+          ui.pomodoroRect.width += 25;
         } else {
-          minuteText.style.display = "inline";
-          textIsVisible = true;
+          globals.isAnimating = false;
+          ui.pomodoroRect.width = device.screen.width;
+          clearInterval(enable);
+        }
+      }, 1);
+    }, 300);
+
+    globals.state = 'initialize';
+    globals.pomodoroNumber = 0;
+    globals.secondsToEnd = Math.floor(settings.pomodoroDuration * 60);
+
+    ui.pomodoroLabel.text = 'Pomodoro #1';
+    ui.stateLabel.text = 'Start a Pomodoro';
+    ui.minuteLabel.text = settings.pomodoroDuration;
+
+    ui.setButtonsReset();
+    ui.setLabelsReset();
+  }
+}
+
+ui.forwardButton.onactivate = evt => {
+  if (!globals.isAnimating) {
+    haptics.vibration.start('confirmation');
+
+    endStateTimer(true);
+  }
+}
+
+ui.playButton.onactivate = evt => {
+  if (!globals.isAnimating) {
+    haptics.vibration.start('confirmation');
+
+    if (globals.state == 'initialize') {
+      globals.isAnimating = true;
+      // Animate rectangle going to nothing
+      let disable = setInterval(() => {
+        if (ui.pomodoroRect.width > 0) {
+          ui.pomodoroRect.width -= 25;
+        } else {
+          ui.pomodoroRect.width = 0;
+          clearInterval(disable);
+        }
+      }, 1);
+
+      // Delay starting timer until after animation is done
+      setTimeout(() => {
+        startStateTimer(false);
+      }, 250);
+
+      globals.state = 'working';
+      globals.secondsToEnd = settings.pomodoroDuration * 60;
+
+      ui.stateLabel.text = 'Get to work!';
+      ui.minuteLabel.text = `${settings.pomodoroDuration}:00`;
+
+      ui.setButtonsUnpaused();
+      ui.setLabelsUnpaused();
+    } else if (globals.userIsPaused()) {
+      globals.unpauseState();
+
+      // Cancel other timers before starting a new one
+      if (globals.timerSet) {
+        clearInterval(globals.timer);
+        globals.timerSet = false;
+      }
+      startStateTimer(true);
+
+      ui.setButtonsUnpaused();
+      ui.setStateLabelText(globals.state);
+      ui.setLabelsUnpaused();
+    }
+  }
+};
+
+ui.pauseButton.onactivate = evt => {
+  if (!globals.isAnimating) {
+    haptics.vibration.start('confirmation');
+
+    if (!globals.userIsPaused()) {
+      globals.pauseState();
+
+      // Stop pomodoro timer so we can start blinky timer
+      if (globals.timerSet) {
+        clearInterval(globals.timer);
+        globals.timerSet = false;
+      }
+
+      globals.timer = setInterval(() => {
+        if (ui.minuteLabel.style.display == 'inline') {
+          ui.minuteLabel.style.display = 'none';
+        } else {
+          ui.minuteLabel.style.display = 'inline';
         }
       }, 1000);
-      timerSet = true;
+      globals.timerSet = true;
 
-      btnTRReset.style.display = "inline";
-      btnTRForward.style.display = "none";
-      btnBRPlay.style.display = "inline";
-      btnBRPause.style.display = "none";
-
-      pomodoroText.text = `Pomodoro #${pomodoroNumber}`;
-      stateText.text = "Paused...";
-      let minutes = Math.floor(secondsToEnd / 60);
-      let seconds = secondsToEnd % 60;
-      minutes = (minutes < 10) ? ("0" + minutes) : minutes;
-      seconds = (seconds < 10) ? ("0" + seconds) : seconds;
-      minuteText.text = minutes + ":" + seconds;
-      
-      pomodoroText.style.display = "inline";
-      unitText.style.display = "none";
+      ui.setButtonsPaused();
+      ui.setStateLabelText(globals.state);
     }
   }
-} catch (e) {
-  console.log("Last state not found, defaulting to presets.");
+}
+
+function startStateTimer(is_resume) {
+  // When resuming, we do not want to increment the pomodoro number!
+  if (!is_resume && (globals.state == 'working' || globals.state == 'working-paused')) {
+    globals.pomodoroNumber++;
+    ui.pomodoroLabel.text = `Pomodoro #${globals.pomodoroNumber}`;
+  }
+
+  let duration = settings.getCurrentDuration(globals.state);
+
+  // Clear other timers better setting one
+  clearInterval(globals.timer);
+  globals.timer = setInterval(() => {
+    globals.secondsToEnd--;
+    ui.setMinuteLabelText(globals.secondsToEnd);
+    ui.pomodoroRect.width = device.screen.width 
+                            - Math.floor(device.screen.width 
+                                         * globals.secondsToEnd 
+                                         / Math.floor(duration * 60));
+    if (globals.secondsToEnd < 0) {
+      endStateTimer(true);
+    }
+  }, 1000);
+  globals.timerSet = true;
+  globals.isAnimating = false;
+
+  ui.setPomodoroRectColours(globals.state);
+};
+
+function endStateTimer(start_next) {
+  haptics.vibration.start('ping');
+
+  // Clear all other timers, then set one for the rectangle fading away
+  clearInterval(globals.timer);
+  globals.isAnimating = true;
+  let disable = setInterval(() => {
+    if (ui.pomodoroRect.width > 0) {
+      ui.pomodoroRect.width -= 25;
+    } else {
+      globals.isAnimating = false;
+      ui.pomodoroRect.width = 0;
+      clearInterval(disable);
+    }
+  }, 1);
+
+  // It is the responsibility of the endStateTimer to increment the state
+  // if starting the next state after ending a timer
+  if (start_next) {
+    globals.resetSecondsToEnd(settings.pomodoroDuration,
+                              settings.shortRestDuration,
+                              settings.longRestDuration);
+    globals.incrementState();
+    let duration = settings.getCurrentDuration(globals.state);
+    ui.minuteLabel.text = duration < 10
+                          ? `0${duration}:00`
+                          : `${duration}:00`;
+    globals.secondsToEnd = duration * 60;
+    ui.setStateLabelText(globals.state);
+    setTimeout(() => {
+      startStateTimer(false);    
+    }, 300)
+  }
+}
+
+ui.minuteLabel.text = settings.pomodoroDuration;
+
+if (settings.continueOnResume) {
+  let difference = Math.floor((Date.now() - globals.lastTimestamp) / 1000);
+  if (!globals.userIsPaused() && difference < 60 * 60 * 12) {
+    // let difference = settings.totalDuration * 60 + 600; // Use for testing; comment out previous line
+    // console.log(`totalDuration is ${settings.totalDuration}`);
+    // Total time, in seconds, that we need to skip through
+    let leftoverDifference = difference % (settings.totalDuration * 60);
+    switch (globals.state) {
+      case 'working':
+        if (leftoverDifference - globals.secondsToEnd > 0) {
+          leftoverDifference -= globals.secondsToEnd; // Fast-forward to end of 'working' state
+          globals.state = globals.pomodoroNumber % 4 ? 'shortResting' : 'longResting';
+          do {
+            // Try to advance through next 'resting' state
+            // settings durations are in minutes, so * 60 to convert to seconds
+            let duration = globals.pomodoroNumber % 4 ? settings.shortRestDuration : settings.longRestDuration;
+            if (leftoverDifference - duration * 60 <= 0) { // Can't subtract any more, we're done
+              globals.secondsToEnd = duration * 60 - leftoverDifference;
+              break;
+            } else {
+              leftoverDifference -= duration * 60;
+              globals.state = 'working';
+              globals.pomodoroNumber++;
+            }
+
+            // Try to advance through next 'working' state
+            if (leftoverDifference - settings.pomodoroDuration * 60 <= 0) {
+              globals.secondsToEnd = settings.pomodoroDuration * 60 - leftoverDifference;
+              break;
+            } else {
+              leftoverDifference -= settings.pomodoroDuration * 60;
+              globals.state = globals.pomodoroNumber % 4 ? 'shortResting' : 'longResting';
+            }
+          } while (true)
+        } else {
+          globals.secondsToEnd -= leftoverDifference;
+        }
+        break;
+      case 'shortResting':
+      case 'longResting':
+        if (leftoverDifference - globals.secondsToEnd > 0) {
+          leftoverDifference -= globals.secondsToEnd; // Fast-forward to end of 'resting' state
+          globals.state = 'working';
+          globals.pomodoroNumber++;
+          do {
+            // Try to advance through next 'working' state
+            if (leftoverDifference - settings.pomodoroDuration * 60 <= 0) {
+              globals.secondsToEnd = settings.pomodoroDuration * 60 - leftoverDifference;
+              break;
+            } else {
+              leftoverDifference -= settings.pomodoroDuration;
+              globals.state = 'shortResting';
+            }
+
+            // Try to advance through next 'resting' state
+            let duration = globals.pomodoroNumber % 4 ? settings.shortRestDuration : settings.longRestDuration; // Set duration to fast-forward depending on pomodoroNumber
+            if (leftoverDifference - duration * 60 <= 0) {
+              globals.secondsToEnd = duration * 60 - leftoverDifference;
+              break;
+            } else {
+              leftoverDifference -= duration * 60;
+              globals.state = 'working';
+              globals.pomodoroNumber++;
+            }
+          } while (true)
+        } else {
+          globals.secondsToEnd -= leftoverDifference;
+        }
+        break;
+      default:
+        console.log(`State is invalid: ${globals.state}`);
+        break;
+    }
+    startStateTimer(true);
+    // Get number of sets that have passed by
+    let elapsedPomodoros = Math.floor(difference / (settings.totalDuration * 60));
+
+    globals.pomodoroNumber += 4 * elapsedPomodoros;
+
+    ui.setButtonsUnpaused();
+    ui.setLabelsUnpaused();     
+  } else {
+    if (globals.state != 'initialize') {
+      if (globals.timerSet) {
+        clearInterval(globals.timer);
+        globals.timerSet = false;
+      }
+
+      globals.timer = setInterval(() => {
+        if (ui.minuteLabel.style.display == 'inline') {
+          ui.minuteLabel.style.display = 'none';
+        } else {
+          ui.minuteLabel.style.display = 'inline';
+        }
+      }, 1000);
+      globals.timerSet = true;
+
+      ui.setPomodoroRectColours(globals.state);
+      
+      ui.setButtonsPaused();
+      ui.setStateLabelText(globals.state)
+    }
+  }
+  if (globals.state != 'initialize') {
+    ui.pomodoroLabel.text = `Pomodoro #${globals.pomodoroNumber}`;
+    ui.setMinuteLabelText(globals.secondsToEnd);
+    ui.setLabelsUnpaused(); 
+  }
+} else {
+  if (globals.state == 'working' || globals.state == 'working-paused' || 
+      globals.state == 'shortResting' || globals.state == 'shortResting-paused' || 
+      globals.state == 'longResting' || globals.state == 'longResting-paused') {
+
+    globals.pauseState();
+
+    if (globals.timerSet) {
+      clearInterval(globals.timer);
+      globals.timerSet = false;
+    }
+
+    globals.timer = setInterval(() => {
+      if (ui.minuteLabel.style.display == 'inline') {
+        ui.minuteLabel.style.display = 'none';
+      } else {
+        ui.minuteLabel.style.display = 'inline';
+      }
+    }, 1000);
+    globals.timerSet = true;
+
+    ui.setPomodoroRectColours(globals.state);
+    
+    ui.setButtonsPaused();
+
+    ui.pomodoroLabel.text = `Pomodoro #${globals.pomodoroNumber}`;
+    ui.setStateLabelText(globals.state);
+    ui.setMinuteLabelText(globals.secondsToEnd);
+    ui.setLabelsUnpaused();
+  }
+}
+
+if (globals.state != 'initialize') {
+  ui.pomodoroRect.width = device.screen.width
+                          - Math.floor(device.screen.width
+                                       * globals.secondsToEnd
+                                       / Math.floor(settings.getCurrentDuration(globals.state)
+                                                    * 60));
 }
