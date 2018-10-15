@@ -1,4 +1,8 @@
 {
+  "devDependencies": {
+    "@fitbit/sdk": "~1.0.0",
+    "@fitbit/sdk-cli": "^1.0.0"
+  },
   "fitbit": {
     "appUUID": "55d5be9a-1571-4987-b5e7-cda00dc7d56b",
     "appType": "app",
@@ -35,5 +39,8 @@
         "name": "토마티나"
       }
     }
+  },
+  "scripts": {
+    "build": "fitbit-build"
   }
 }

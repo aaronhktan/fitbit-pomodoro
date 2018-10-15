@@ -1,8 +1,4 @@
 import { me } from 'appbit';
-import clock from 'clock';
-import { me as device } from 'device';
-import document from 'document';
-import * as fs from 'fs';
 import * as haptics from 'haptics';
 import * as messaging from 'messaging';
 import { sendVal, stripQuotes } from '../common/utils.js';
@@ -63,12 +59,12 @@ ui.resetButton.onactivate = evt => {
     haptics.vibration.start('confirmation');
 
     endStateTimer(false);
-    globals.isAnimating = true;
 
     setTimeout(() => {
       ui.setPomodoroRectColours(globals.state);
       let enable = setInterval(() => {
         if (ui.pomodoroRect.width <= device.screen.width) {
+          globals.isAnimating = true;
           ui.pomodoroRect.width += 25;
         } else {
           globals.isAnimating = false;
@@ -211,7 +207,6 @@ function endStateTimer(start_next) {
     if (ui.pomodoroRect.width > 0) {
       ui.pomodoroRect.width -= 25;
     } else {
-      globals.isAnimating = false;
       ui.pomodoroRect.width = 0;
       clearInterval(disable);
     }
@@ -230,8 +225,12 @@ function endStateTimer(start_next) {
                           : `${duration}:00`;
     globals.secondsToEnd = duration * 60;
     ui.setStateLabelText(globals.state);
+    if (globals.state == 'working' || globals.state == 'working-paused') {
+      globals.pomodoroNumber++;
+      ui.pomodoroLabel.text = `Pomodoro #${globals.pomodoroNumber}`;
+    }
     setTimeout(() => {
-      startStateTimer(false);    
+      startStateTimer(true);
     }, 300)
   }
 }
@@ -318,7 +317,6 @@ if (settings.continueOnResume) {
     globals.pomodoroNumber += 4 * elapsedPomodoros;
 
     ui.setButtonsUnpaused();
-    ui.setLabelsUnpaused();     
   } else {
     if (globals.state != 'initialize') {
       if (globals.timerSet) {
@@ -334,16 +332,15 @@ if (settings.continueOnResume) {
         }
       }, 1000);
       globals.timerSet = true;
-
-      ui.setPomodoroRectColours(globals.state);
       
       ui.setButtonsPaused();
-      ui.setStateLabelText(globals.state)
     }
   }
   if (globals.state != 'initialize') {
+    ui.setPomodoroRectColours(globals.state);
     ui.pomodoroLabel.text = `Pomodoro #${globals.pomodoroNumber}`;
     ui.setMinuteLabelText(globals.secondsToEnd);
+    ui.setStateLabelText(globals.state);
     ui.setLabelsUnpaused(); 
   }
 } else {
