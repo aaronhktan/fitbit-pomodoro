@@ -103,6 +103,6 @@ export default class Settings {
   }
   
   get totalDuration() {
-    return this._pomodoroDuration * 4 + this._shortRestDuration * 3 + this._longRestDuration;
+    return Number(this._pomodoroDuration * 4) + Number(this._shortRestDuration * 3) + Number(this._longRestDuration);
   }
 }

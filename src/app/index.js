@@ -1,4 +1,5 @@
 import { me } from 'appbit';
+import { me as device } from 'device'
 import * as haptics from 'haptics';
 import * as messaging from 'messaging';
 import { sendVal, stripQuotes } from '../common/utils.js';
