@@ -16,6 +16,7 @@ export default class Globals {
   constructor() {
     try {
       var lastState = fs.readFileSync('lastState.txt', 'cbor');
+      console.log(`Read from filesystem:\n\n${JSON.stringify(lastState)}`);
       if (lastState) {
         if (lastState.state !== undefined) {
           this._state = lastState.state;
@@ -40,7 +41,7 @@ export default class Globals {
       'pomodoroNumber': this._pomodoroNumber,
       'state': this._state,
       'secondsToEnd': this._secondsToEnd,
-      'timestamp': Date.now(),
+      'timestamp': Date.now(), // Epoch time, milliseconds
       'version': this._currentGlobalsVersion,
     }
     fs.writeFileSync('lastState.txt', json_data, 'cbor');

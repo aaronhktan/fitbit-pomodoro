@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 
 export default class Settings {
+  // Durations are always in minutes
   _pomodoroDuration = 25;
   _shortRestDuration = 5;
   _longRestDuration = 15;

@@ -240,19 +240,23 @@ ui.minuteLabel.text = settings.pomodoroDuration;
 
 if (settings.continueOnResume) {
   let difference = Math.floor((Date.now() - globals.lastTimestamp) / 1000);
+  // Only resume if less than 12 hours elapsed
   if (!globals.userIsPaused() && difference < 60 * 60 * 12) {
     // let difference = settings.totalDuration * 60 + 600; // Use for testing; comment out previous line
     // console.log(`totalDuration is ${settings.totalDuration}`);
-    // Total time, in seconds, that we need to skip through
+
+    // Calculate amount of time remaining after skipping through many whole Pomodoros,
+    /// i.e. work/short rest/work/short rest/work/short rest/work/long rest sequence
     let leftoverDifference = difference % (settings.totalDuration * 60);
     switch (globals.state) {
       case 'working':
+        // Fast-forward to end of 'working' state if remaining time is more than the seconds to end of working state.
         if (leftoverDifference - globals.secondsToEnd > 0) {
-          leftoverDifference -= globals.secondsToEnd; // Fast-forward to end of 'working' state
+          leftoverDifference -= globals.secondsToEnd;
           globals.state = globals.pomodoroNumber % 4 ? 'shortResting' : 'longResting';
+
           do {
-            // Try to advance through next 'resting' state
-            // settings durations are in minutes, so * 60 to convert to seconds
+            // Try to advance to the next resting state
             let duration = globals.pomodoroNumber % 4 ? settings.shortRestDuration : settings.longRestDuration;
             if (leftoverDifference - duration * 60 <= 0) { // Can't subtract any more, we're done
               globals.secondsToEnd = duration * 60 - leftoverDifference;
@@ -272,6 +276,7 @@ if (settings.continueOnResume) {
               globals.state = globals.pomodoroNumber % 4 ? 'shortResting' : 'longResting';
             }
           } while (true)
+
         } else {
           globals.secondsToEnd -= leftoverDifference;
         }
@@ -282,6 +287,7 @@ if (settings.continueOnResume) {
           leftoverDifference -= globals.secondsToEnd; // Fast-forward to end of 'resting' state
           globals.state = 'working';
           globals.pomodoroNumber++;
+
           do {
             // Try to advance through next 'working' state
             if (leftoverDifference - settings.pomodoroDuration * 60 <= 0) {
@@ -319,7 +325,12 @@ if (settings.continueOnResume) {
 
     ui.setButtonsUnpaused();
   } else {
+    // More than twelve hours have elapsed, user probably forgot about their timer.
+    // Set it to paused in order to allow them to resume it.
     if (globals.state != 'initialize') {
+
+      globals.pauseState();
+
       if (globals.timerSet) {
         clearInterval(globals.timer);
         globals.timerSet = false;
@@ -333,7 +344,7 @@ if (settings.continueOnResume) {
         }
       }, 1000);
       globals.timerSet = true;
-      
+
       ui.setButtonsPaused();
     }
   }
