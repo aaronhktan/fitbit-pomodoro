@@ -4,9 +4,9 @@
     "@fitbit/sdk-cli": "^1.0.2"
   },
   "fitbit": {
-    "appUUID": "55d5be9a-1571-4987-b5e7-cda00dc7d56b",
+    "appUUID": "55d5be9a-1571-4987-b5e7-cda00dc7d56a",
     "appType": "app",
-    "appDisplayName": "Tomatina",
+    "appDisplayName": "Tomatina Beta",
     "iconFile": "resources/icon.png",
     "wipeColor": "#f44336",
     "requestedPermissions": [
@@ -18,25 +18,25 @@
     ],
     "i18n": {
       "en": {
-        "name": "Tomatina"
+        "name": "Tomatina Beta"
       },
       "zh-cn": {
-        "name": "番茄工作计时器"
+        "name": "番茄工作计时器 Beta"
       },
       "zh-tw": {
-        "name": "番茄工作計時器"
+        "name": "番茄工作計時器 Beta"
       },
       "fr": {
-        "name": "Tomatina"
+        "name": "Tomatina Beta"
       },
       "es": {
-        "name": "Tomatina"
+        "name": "Tomatina Beta"
       },
       "ja": {
-        "name": "トマティーナ"
+        "name": "トマティーナ Beta"
       },
       "ko": {
-        "name": "토마티나"
+        "name": "토마티나 Beta"
       }
     }
   },
