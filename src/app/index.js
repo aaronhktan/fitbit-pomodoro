@@ -326,26 +326,23 @@ if (settings.continueOnResume) {
     ui.setButtonsUnpaused();
   } else {
     // More than twelve hours have elapsed, user probably forgot about their timer.
-    // Set it to paused in order to allow them to resume it.
+    // Reset to default so they can start a new one.
     if (globals.state != 'initialize') {
-
-      globals.pauseState();
-
       if (globals.timerSet) {
         clearInterval(globals.timer);
         globals.timerSet = false;
       }
 
-      globals.timer = setInterval(() => {
-        if (ui.minuteLabel.style.display == 'inline') {
-          ui.minuteLabel.style.display = 'none';
-        } else {
-          ui.minuteLabel.style.display = 'inline';
-        }
-      }, 1000);
-      globals.timerSet = true;
+      globals.state = 'initialize';
+      globals.pomodoroNumber = 0;
+      globals.secondsToEnd = Math.floor(settings.pomodoroDuration * 60);
 
-      ui.setButtonsPaused();
+      ui.pomodoroLabel.text = 'Pomodoro #1';
+      ui.stateLabel.text = 'Start a Pomodoro';
+      ui.minuteLabel.text = settings.pomodoroDuration;
+
+      ui.setButtonsReset();
+      ui.setLabelsReset();
     }
   }
   if (globals.state != 'initialize') {
