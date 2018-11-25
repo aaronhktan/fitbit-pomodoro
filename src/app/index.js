@@ -324,6 +324,28 @@ if (settings.continueOnResume) {
     globals.pomodoroNumber += 4 * elapsedPomodoros;
 
     ui.setButtonsUnpaused();
+  } else if (globals.userIsPaused() && difference < 60 * 60 * 12) {
+    // Fewer than twelve hours have elapsed and user is paused.
+    if (globals.state != 'initialize') {
+
+      globals.pauseState();
+
+      if (globals.timerSet) {
+        clearInterval(globals.timer);
+        globals.timerSet = false;
+      }
+
+      globals.timer = setInterval(() => {
+        if (ui.minuteLabel.style.display == 'inline') {
+          ui.minuteLabel.style.display = 'none';
+        } else {
+          ui.minuteLabel.style.display = 'inline';
+        }
+      }, 1000);
+      globals.timerSet = true;
+
+      ui.setButtonsPaused();
+    }
   } else {
     // More than twelve hours have elapsed, user probably forgot about their timer.
     // Reset to default so they can start a new one.
