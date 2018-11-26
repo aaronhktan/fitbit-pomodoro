@@ -5,7 +5,3 @@ export function sendVal(data) {
     messaging.peerSocket.send(data);
   }
 }
-
-export function stripQuotes(str) {
-  return str ? str.replace(/"/g, "") : "";
-}

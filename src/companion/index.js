@@ -1,6 +1,6 @@
 import { settingsStorage } from "settings";
 import * as messaging from "messaging";
-import { sendVal, stripQuotes } from "../common/utils.js";
+import { sendVal } from "./utils.js";
 
 messaging.peerSocket.onopen = function() {
   restoreSettings();

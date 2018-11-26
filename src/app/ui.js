@@ -44,7 +44,7 @@ export default class UI {
     this._btnBRPause.style.display = 'none';
   }
   
-  setLabelsUnpaused() {
+  setLabelsStarted() {
     this._pomodoroText.style.display = 'inline';
     this._minuteText.style.display = 'inline';
     this._unitText.style.display = 'none';

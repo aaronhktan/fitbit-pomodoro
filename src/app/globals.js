@@ -1,16 +1,16 @@
 import * as fs from 'fs';
 
 export default class Globals {
-  _pomodoroNumber = 0;
-  _secondsToEnd = 15 * 60;
-  _timer = false;
-  _timerSet = false;
+  _pomodoroNumber = 0; // Keeps track of number of Pomodoros user has completed
+  _secondsToEnd = 15 * 60; // Keeps track of seconds to end of current state, in seconds
+  _timer = false; // Timer object, for animation/pomodoro/etc.
+  _timerSet = false; // Keeps track of whether a timer is set
   _state = 'initialize';
   // Possible states are initialize, working, 
   // shortResting, longResting, working-paused, 
   // shortResting-paused, and longResting-paused
-  _lastTimestamp = 0;
-  _isAnimating = false;
+  _lastTimestamp = 0; // Timestamp since last exit of app
+  _isAnimating = false; // Keeps track of whether animation is occurring on screen
   _currentGlobalsVersion = 2;
 
   constructor() {
