@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "@fitbit/sdk": "~1.0.0",
+    "@fitbit/sdk": "^4.1.0",
     "@fitbit/sdk-cli": "^1.0.2"
   },
   "fitbit": {
@@ -14,7 +14,8 @@
     ],
     "buildTargets": [
       "higgs",
-      "meson"
+      "meson",
+      "gemini"
     ],
     "i18n": {
       "en": {

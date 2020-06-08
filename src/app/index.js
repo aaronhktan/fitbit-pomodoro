@@ -21,6 +21,11 @@ me.addEventListener('unload', () => {
   settings.save();
 });
 
+// Disable app timeout on SDK 2.2 onwards
+if (me.appTimeoutEnabled) {
+  me.appTimeoutEnabled = false;
+}
+
 // Receive and parse new settings
 messaging.peerSocket.onmessage = evt => {
   if (evt.data.hasOwnProperty('key')) {
